@@ -78,7 +78,6 @@ class Group(BaseGroup):
 
         # Get the bids from each player for each room
         for player in self.get_players():
-            print(player.id_in_group)
             bids[player.id_in_group]['X'] = player.bid_room_X
             bids[player.id_in_group]['Y'] = player.bid_room_Y
             bids[player.id_in_group]['Z'] = player.bid_room_Z
@@ -126,7 +125,7 @@ class Group(BaseGroup):
             others = [p for p in players if p != player.id_in_group]
             max_total_without_player = -1
 
-            print(f"\nAll possible allocations and total bids without Player {player.id_in_group}:")
+            # print(f"\nAll possible allocations and total bids without Player {player.id_in_group}:")
             for allocation in itertools.permutations(rooms, len(others)):
                 total = sum(bids[p][room] for p, room in zip(others, allocation))
                 print(f"Allocation: {dict(zip(others, allocation))}, Total bid: €{total}")
@@ -134,7 +133,7 @@ class Group(BaseGroup):
                     max_total_without_player = total
                     optimal_allocation_without_player = allocation
 
-            print(f"\nOptimal Allocation without Player {player.id_in_group}:")
+            # print(f"\nOptimal Allocation without Player {player.id_in_group}:")
             for other, room in zip(others, optimal_allocation_without_player):
                 print(f"Player {other} gets room {room}")
 
@@ -149,8 +148,8 @@ class Group(BaseGroup):
                     player.pivotal = 1
             else:
                 player.payment_vcg = 0
-            print(f"\nPlayer {player.id_in_group} is pivotal: {player.pivotal}")
-            print(player)
+            # print(f"\nPlayer {player.id_in_group} is pivotal: {player.pivotal}")
+            # print(player)
             player.subtracted_points_vcg = float(player.payment_vcg)
             player.points = player.points - float(player.subtracted_points_vcg)
             player.payoff = player.points * C.POINTS_TO_EUR
@@ -180,6 +179,15 @@ class Player(BasePlayer):
     # payoff = models.CurrencyField() 
 
     satisfaction = likert_field('Satisfaction', C.SATISFACTION_VN)
+    dissatisfaction = likert_field('Dissatisfaction', C.DISSATISFACTION_VN)
+    agreement = likert_field('Agreement', C.AGREEMENT_VN)
+    appropriateness = likert_field('Appropriateness', C.APPROPRIATENESS_VN)
+    fairness = likert_field('Fairness', C.FAIRNESS_VN)
+    understanding = likert_field('Understanding', C.UNDERSTANDING_VN)
+
+    benevolence = likert_field('Benevolence', C.BENEVOLENCE_VN)
+    competence = likert_field('Competence', C.COMPETENCY_VN)
+    integrity = likert_field('Integrity', C.INTEGRITY_VN)
 
     vcg_comprehension_1 = models.StringField(
         choices=[
@@ -236,4 +244,4 @@ class Subsession(BaseSubsession):
                     for round_number, treatment in enumerate(treatment_order, start=1):
                         p.participant.vars[f'treatment_round_{round_number}'] = treatment
                         p.treatment = treatment
-                        print(p.treatment)
+                    

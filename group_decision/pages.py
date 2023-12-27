@@ -72,7 +72,7 @@ class TaskOutro(PageWithTimeout):
 
 class Satisfaction(PageWithTimeout):
     form_model = 'player'
-    form_fields = ['satisfaction']
+    form_fields = ['satisfaction', 'dissatisfaction', 'understanding', 'appropriateness', 'fairness']
 
     def vars_for_template(self):
         current_round = self.player.round_number
@@ -85,6 +85,21 @@ class Satisfaction(PageWithTimeout):
             'bids': self.player.get_sorted_bids() if current_treatment == 'VCG' else None,
             'pivotal': self.player.pivotal if current_treatment == 'VCG' else None,
         }
+    
+
+class Trust(PageWithTimeout):
+    form_model = 'player'
+    form_fields = ['benevolence', 'competence', 'integrity']
+    
+
+    def vars_for_template(self):
+        current_round = self.player.round_number
+        current_treatment = getattr(self.player.participant, f'treatment_round_{current_round}')
+        return {
+            'order': self.group.round_number,
+            'strings': C.strings,
+            'treatment': current_treatment
+        }
 
 
-page_sequence = [Introduction, TaskIntro, InfoVCG, TestVCG_1, TestVCG_2, DecisionVCG, WaitForOtherToVoteVCG, OutcomeVCG, TaskOutro, Satisfaction, BordaCount1, BordaCount2, TTC]
+page_sequence = [Introduction, TaskIntro, InfoVCG, TestVCG_1, TestVCG_2, DecisionVCG, WaitForOtherToVoteVCG, OutcomeVCG, TaskOutro, Satisfaction, Trust, BordaCount1, BordaCount2, TTC]
