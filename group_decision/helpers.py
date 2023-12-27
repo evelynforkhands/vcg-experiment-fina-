@@ -7,18 +7,22 @@ def get_strings():
     return strings
 
 def is_correct_treatment(player, treatment):
+    print(player.participant.vars)
+    print(player.round_number)
+    print(player.participant.vars.get(f'treatment_round_{player.round_number}'), 'treatment_round')
+    print(treatment, 'treatment')
     current_round_treatment = player.participant.vars.get(f'treatment_round_{player.round_number}')
     return treatment == current_round_treatment
 
 class PageWithTimeout(Page):
     timer_text = 'Time left to complete this part:'
-    def get_timeout_seconds(player):
+    def get_timeout_seconds(self):
         import time
-        if is_correct_treatment(player, 'BordaCount'):
-            return player.start_time_Borda + player.timeout_Borda - time.time()
-        elif is_correct_treatment(player, 'TTC'):
-            return player.start_time_TTC + player.timeout_TTC - time.time()
-        elif is_correct_treatment(player, 'VCG'):
-            return player.start_time_VCG + player.timeout_VCG - time.time()
+        if is_correct_treatment(self.player, 'BordaCount'):
+            return self.player.start_time_Borda + self.player.timeout_Borda - time.time()
+        elif is_correct_treatment(self.player, 'TTC'):
+            return self.player.start_time_TTC + self.player.timeout_TTC - time.time()
+        elif is_correct_treatment(self.player, 'VCG'):
+            return self.player.start_time_VCG + self.player.timeout_VCG - time.time()
         else:
             return 0
