@@ -1,7 +1,7 @@
 
 from otree.api import Page
 
-from .VCG.VCG_pages import InfoVCG
+from .VCG.VCG_pages import *
 from .helpers import PageWithTimeout, is_correct_treatment, get_strings
 from .models import Player, C
 
@@ -63,4 +63,4 @@ class TaskIntro(Page):
             return 0
 
 
-page_sequence = [Introduction, TaskIntro, VCG, InfoVCG, BordaCount1, BordaCount2, TTC]
+page_sequence = [Introduction, TaskIntro, InfoVCG, TestVCG_1, TestVCG_2, BordaCount1, BordaCount2, TTC]

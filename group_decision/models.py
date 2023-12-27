@@ -1,6 +1,6 @@
 from itertools import permutations, cycle
 from otree.api import (
-    models, BaseGroup, BasePlayer, BaseSubsession, BaseConstants
+    models, BaseGroup, BasePlayer, BaseSubsession, BaseConstants, widgets
 )
 from .helpers import get_strings
 
@@ -22,6 +22,37 @@ class Player(BasePlayer):
     timeout_VCG = models.IntegerField(initial=720)
     timeout_TTC = models.IntegerField(initial=720)
     timeout_Borda = models.IntegerField(initial=720)
+
+
+    vcg_comprehension_1 = models.StringField(
+        choices=[
+            [1,
+             'The app takes into account all the bids, and matches tenants to rooms in such a way that the sum of all their bids is maximised.'],
+            [2,
+             'The app takes into account all the bids, and matches tenants to rooms in such a way that the sum of all their bids is minimised.'],
+            [3, 'The app randomly matches tenants to rooms.'],
+            [4, 'The app matches tenants to rooms based on the highest individual bid.'],
+        ],
+        widget=widgets.RadioSelect,
+        verbose_name='How does the app match tenants to rooms?',
+        blank=False
+    )
+
+    vcg_comprehension_2 = models.StringField(
+        choices=[
+            [1,
+             'Decisive influence means that if a tenant had not participated in the bidding, other tenants would have been matched to rooms they like more. '],
+            [2,
+             'Decisive influence means that a tenant is not interested in any of the rooms.'],
+            [3,
+             'Decisive influence means that a tenant is interested in all of the rooms equally.'],
+            [4,
+             'Decisive influence means that a tenant\'s bid determines the final matching of a room.']
+        ],
+        widget=widgets.RadioSelect,
+        verbose_name='What does it mean for a tenant to have a decisive influence on the final matching?',
+        blank=False
+    )
 
 class Subsession(BaseSubsession):
 

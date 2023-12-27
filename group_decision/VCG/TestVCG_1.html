@@ -1,0 +1,18 @@
+{{ block title }}
+Comprehension test (1/2)
+{{ endblock }}
+{{ block content }}
+{% block scripts %}
+    <script src="{% static 'global/shuffle_answer_options.js' %}"></script>
+{% endblock %}
+
+
+{{formfields}}
+<div class="container">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      {{ next_button}}
+        <p class="text-muted mb-0">Part {{ group.round_number }}/3</p>
+    </div>
+</div>
+{{endblock}}
+
