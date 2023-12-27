@@ -19,7 +19,7 @@ SESSION_CONFIG_DEFAULTS = dict(
     real_world_currency_per_point= 0.05, participation_fee=0.00, doc=""
 )
 
-PARTICIPANT_FIELDS = ['TREATEMENT_ORDER', 'reached_wait_page']
+PARTICIPANT_FIELDS = ['TREATEMENT_ORDER', 'reached_wait_page', 'treatment_round_1', 'treatment_round_2', 'treatment_round_3']
 SESSION_FIELDS = []
 
 LANGUAGE_CODE = 'en'

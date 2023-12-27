@@ -6,6 +6,23 @@ from otree.api import (
 )
 from .helpers import get_strings
 
+def likert_field(label, verbose_name):
+    return models.IntegerField(
+        label=label,
+        verbose_name=verbose_name,
+        widget=widgets.RadioSelectHorizontal,
+        choices=[
+            [1, 'Strongly disagree'],
+            [2, 'Disagree'],
+            [3, 'Somewhat disagree'],
+            [4, 'Neither agree nor disagree'],
+            [5, 'Somewhat agree'],
+            [6, 'Agree'],
+            [7, 'Strongly agree']
+        ]
+    )
+
+
 class C(BaseConstants):
     NAME_IN_URL = 'random_task_order'
     PLAYERS_PER_GROUP = 3
@@ -18,6 +35,40 @@ class C(BaseConstants):
     POINTS_TO_EUR = 0.05
     SHOWUP_FEE = 3
     strings = get_strings()
+
+    INTEGRITY_VN = 'I believe that the matching app would remain consistent and predictable.'
+    COMPETENCY_VN = 'I believe that the matching app is very capable of making effective decisions.'
+    BENEVOLENCE_VN = 'I believe that the matching app would act in my best interest.'
+
+    SATISFACTION_VN = 'I am satisfied with my matching.'
+    DISSATISFACTION_VN = 'I am dissatisfied with my matching.'
+    FAIRNESS_VN = 'My matching was fair.'
+    UNDERSTANDING_VN = 'I understood the process by which the matching was made.'
+    AGREEMENT_VN = 'I agree with the matching.'
+    APPROPRIATENESS_VN = 'The factors considered by the matching app were appropriate.'
+
+    likert_7 = [
+        [1, 'Strongly disagree'],
+        [2, 'Disagree'],
+        [3, 'Somewhat disagree'],
+        [4, 'Neither agree nor disagree'],
+        [5, 'Somewhat agree'],
+        [6, 'Agree'],
+        [7, 'Strongly agree']
+    ]
+
+    effort = [
+        [1, '1: Very, very low mental effort'],
+        [2, '2: Very low mental effort'],
+        [3, '3: Low mental effort'],
+        [4, '4: Rather low mental effort'],
+        [5, '5: Neither low nor high mental effort'],
+        [6, '6: Rather high mental effort'],
+        [7, '7: High mental effort'],
+        [8, '8: Very high mental effort'],
+        [9, '9: Very, very high mental effort']
+    ]
+
 
 import itertools
 
@@ -44,7 +95,7 @@ class Group(BaseGroup):
                 optimal_allocation = allocation
 
         for player, room in zip(self.get_players(), optimal_allocation):
-            player.assigned_room_vcg = room
+            player.assigned_room = room
 
             bids_ = [
                 (player.bid_room_X, 'X'),
@@ -58,16 +109,16 @@ class Group(BaseGroup):
             rank_to_points = {0: 100, 1: 80, 2: 60}
 
             # Find the ranks of the assigned room and handle equal bids
-            assigned_room_ranks = [i for i, bid in enumerate(bids_) if bid[1] == player.assigned_room_vcg]
+            assigned_room_ranks = [i for i, bid in enumerate(bids_) if bid[1] == player.assigned_room]
 
             # Determine if there is a tie by checking if there are other rooms with the same bid as the assigned room
             tie_ranks = [i for i, bid in enumerate(bids_) if bid[0] == bids_[assigned_room_ranks[0]][0]]
 
             # If there's a tie, average the points of all the tied ranks; otherwise, just give the points for the assigned room's rank
             if len(tie_ranks) > 1:
-                player.points_vcg = int(sum(rank_to_points.get(rank, 0) for rank in tie_ranks) / len(tie_ranks))
+                player.points = int(sum(rank_to_points.get(rank, 0) for rank in tie_ranks) / len(tie_ranks))
             else:
-                player.points_vcg = rank_to_points[assigned_room_ranks[0]]
+                player.points = rank_to_points[assigned_room_ranks[0]]
 
 
         # Calculate the payment for each player
@@ -93,7 +144,7 @@ class Group(BaseGroup):
             if any(room != room_without for room, room_without in
                    zip(optimal_allocation_without_player, allocation_without_player)):
                 player.payment_vcg = max_total_without_player - (
-                        max_total - bids[player.id_in_group][player.assigned_room_vcg])
+                        max_total - bids[player.id_in_group][player.assigned_room])
                 if player.payment_vcg > 0:
                     player.pivotal = 1
             else:
@@ -101,8 +152,8 @@ class Group(BaseGroup):
             print(f"\nPlayer {player.id_in_group} is pivotal: {player.pivotal}")
             print(player)
             player.subtracted_points_vcg = float(player.payment_vcg)
-            player.points_vcg = player.points_vcg - float(player.subtracted_points_vcg)
-            player.payoff_vcg = player.points_vcg * C.POINTS_TO_EUR
+            player.points = player.points - float(player.subtracted_points_vcg)
+            player.payoff = player.points * C.POINTS_TO_EUR
 
 
 
@@ -120,12 +171,15 @@ class Player(BasePlayer):
     bid_room_Y = models.CurrencyField(min=C.MIN_BID, max=C.MAX_BID, verbose_name="Bid for Room Y")
     bid_room_Z = models.CurrencyField(min=C.MIN_BID, max=C.MAX_BID, verbose_name="Bid for Room Z")
 
-    assigned_room_vcg = models.StringField() 
-    points_vcg = models.FloatField()  
+    assigned_room = models.StringField() 
+    assigned_room_rank = models.IntegerField()
+    points = models.FloatField()  
     payment_vcg = models.CurrencyField() 
     pivotal = models.BooleanField(initial=False)  
     subtracted_points_vcg = models.FloatField() 
-    payoff_vcg = models.CurrencyField() 
+    # payoff = models.CurrencyField() 
+
+    satisfaction = likert_field('Satisfaction', C.SATISFACTION_VN)
 
     vcg_comprehension_1 = models.StringField(
         choices=[
@@ -181,3 +235,5 @@ class Subsession(BaseSubsession):
 
                     for round_number, treatment in enumerate(treatment_order, start=1):
                         p.participant.vars[f'treatment_round_{round_number}'] = treatment
+                        p.treatment = treatment
+                        print(p.treatment)

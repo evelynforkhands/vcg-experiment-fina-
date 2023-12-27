@@ -1,0 +1,23 @@
+{{ block content }}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm mt-5" style="background-color: #f8f9fa;">
+        <div class="card-body">
+          <h2 class="card-title text-center">Part {{ group.round_number }}</h2>
+          <p class="card-text text-center">
+            {{strings.task_outro|safe}}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<br>
+<div class="container">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      {{ next_button}}
+        <p class="text-muted mb-0">Part {{ group.round_number }}/3</p>
+    </div>
+</div>
+{{ endblock }}

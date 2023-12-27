@@ -1,0 +1,58 @@
+{{ block content }}
+{% block css %}
+<link rel="stylesheet" type="text/css" href="{% static 'q.css' %}">
+{% endblock %}
+<div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm mt-5" style="background-color: #f8f9fa;">
+                <div class="card-body">
+                    <h2 class="card-title text-center">Satisfaction with matching</h2>
+                    {% if current_treatment == 'VCG' %}
+                    <p class="card-text text-center">
+                        {{strings.outcome_VCG_room|safe}} {{ assigned_room}}.
+                      {{strings.outcome_VCG_ranking|safe}}
+                      {% for room, bid in bids %}
+                      <p>Room {{ room }}: {{ bid }} </p>
+                  {% endfor %}
+
+                  {% if pivotal == 0 %}
+                  <span style="background-color: #90ee90b3; color: #333; padding: 3px;">Since you did not have a decisive influence on the final matching, you do not need to pay to the home improvement fund.</span><br><br>
+                  {% else %}
+                  <span style="background-color: orange; color: #333; padding: 3px;">Since you had a decisive influence on the final matching, you have to pay a charge of {{payment}} to the home improvement fund.</span><br><br>
+                  {% endif %}
+                {% elif current_treatment == 'TTC' %}
+                <p class="card-text text-center">
+                    {{strings.outcome_room|safe}} {{ assigned_room }}.
+                    {{strings.outcome_ranking|safe}} {{assigned_room_rank}}.
+                </p>
+                {% else %}
+                <p class="card-text text-center">
+                    {{strings.outcome_room|safe}} {{ assigned_room }}.
+                    {{strings.outcome_ranking|safe}} {{assigned_room_rank}}.
+                </p>
+                {% endif %}
+        
+
+                    {{strings.agreement_statement|safe}}
+
+                    {{ formfields}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+<div class="container">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        {{ next_button}}
+        <p class="text-muted mb-0">Part {{ group.round_number }}/3</p>
+    </div>
+</div>
+<style>
+    .otree-body {
+        max-width: 1750px !important;
+    }
+</style>
+{{ endblock }}

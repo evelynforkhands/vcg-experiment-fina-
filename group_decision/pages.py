@@ -61,6 +61,30 @@ class TaskIntro(Page):
             self.player.start_time_VCG = int(time.time())
         else:
             return 0
+        
+class TaskOutro(PageWithTimeout):
+
+    def vars_for_template(self):
+        return {
+            'order': self.group.round_number,
+            'strings': C.strings
+        }
+
+class Satisfaction(PageWithTimeout):
+    form_model = 'player'
+    form_fields = ['satisfaction']
+
+    def vars_for_template(self):
+        current_round = self.player.round_number
+        current_treatment = getattr(self.player.participant, f'treatment_round_{current_round}')
+        return {
+            'current_treatment': current_treatment,
+            'round_number': current_round,
+            'strings': C.strings, 
+            'assigned_room': self.player.assigned_room,
+            'bids': self.player.get_sorted_bids() if current_treatment == 'VCG' else None,
+            'pivotal': self.player.pivotal if current_treatment == 'VCG' else None,
+        }
 
 
-page_sequence = [Introduction, TaskIntro, InfoVCG, TestVCG_1, TestVCG_2, DecisionVCG, WaitForOtherToVoteVCG, OutcomeVCG, BordaCount1, BordaCount2, TTC]
+page_sequence = [Introduction, TaskIntro, InfoVCG, TestVCG_1, TestVCG_2, DecisionVCG, WaitForOtherToVoteVCG, OutcomeVCG, TaskOutro, Satisfaction, BordaCount1, BordaCount2, TTC]

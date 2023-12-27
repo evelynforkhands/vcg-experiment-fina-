@@ -88,10 +88,10 @@ class WaitForOtherToVoteVCG(WaitPage):
 class OutcomeVCG(VCGPage):
     def vars_for_template(self):
         return {
-            'assigned_room_vcg': self.player.assigned_room_vcg,
+            'assigned_room_vcg': self.player.assigned_room,
             'pivotal': self.player.field_maybe_none('pivotal'),
             'payment': self.player.field_maybe_none('payment_vcg'),
-            'points': self.player.field_maybe_none('points_vcg'),
+            'points': self.player.field_maybe_none('points'),
             'strings': C.strings,
             'bids': self.player.get_sorted_bids(),
         }
