@@ -1,9 +1,8 @@
 
 from otree.api import Page
 
-def is_correct_treatment(player, treatment):
-    current_round_treatment = player.participant.vars.get(f'treatment_round_{player.round_number}')
-    return treatment == current_round_treatment
+from .VCG.VCG_pages import InfoVCG
+from .helpers import is_correct_treatment
 
 class VCG(Page):
     def is_displayed(self):
@@ -22,4 +21,4 @@ class TTC(Page):
     def is_displayed(self):
         return is_correct_treatment(self, 'TTC')
 
-page_sequence = [VCG, BordaCount1, BordaCount2, TTC]
+

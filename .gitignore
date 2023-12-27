@@ -11,4 +11,4 @@ __pycache__/
 *.py[cod]
 .DS_Store
 *.otreezip
-__azur
+__azur*

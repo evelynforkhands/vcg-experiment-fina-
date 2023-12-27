@@ -1,0 +1,26 @@
+{{ block content }}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm mt-5" style="background-color: #f8f9fa;">
+        <div class="card-body">
+          <h2 class="card-title text-center">Consent & Participation</h2>
+          <p class="card-text text-center">
+            {{strings.consent|safe}}
+          </p>
+          <p class="card-text text-center">
+            {{strings.questions|safe}}
+          </p>
+          <p class="card-text text-center">
+            {{strings.task|safe}}
+          </p>
+          <p class="card-text text-center"><strong>Thank you for participating in our experiment!</strong></p>
+          <p class="card-text text-center">Click "Next" to start Part One.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<br>
+{{next_button}}
+{{ endblock }}
