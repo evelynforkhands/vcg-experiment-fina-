@@ -1,5 +1,6 @@
 from ..helpers import PageWithTimeout, is_correct_treatment, get_strings
 from ..models import Player, C
+from otree.api import WaitPage
 
 def is_displayed_VCG(self):
         if not PageWithTimeout.is_displayed(self):
@@ -62,10 +63,24 @@ class TestVCG_2(VCGPage):
 
 class DecisionVCG(VCGPage):
     form_model = 'player'
-    form_fields = ['bid_room_A', 'bid_room_B', 'bid_room_C']
+    form_fields = ['bid_room_X', 'bid_room_Y', 'bid_room_Z']
 
 
     def vars_for_template(self):
         return {
             'strings': C.strings,
         }
+    
+class WaitForOtherToVoteVCG(WaitPage):
+    body_text = 'Please wait for the other participants to bid on the available rooms.'
+
+    def after_all_players_arrive(self):
+        for p in self.group.get_players():
+            p.participant.vars['reached_wait_page'] = False
+        self.group.vcg_allocation()
+
+    def is_displayed(self):
+        if not PageWithTimeout.is_displayed(self):
+            return False
+        self.participant.vars['reached_wait_page'] = True
+        return True

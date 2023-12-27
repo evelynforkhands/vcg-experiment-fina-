@@ -1,4 +1,5 @@
 from itertools import permutations, cycle
+import itertools
 from otree.api import (
     models, BaseGroup, BasePlayer, BaseSubsession, BaseConstants, widgets
 )
@@ -9,20 +10,84 @@ class C(BaseConstants):
     PLAYERS_PER_GROUP = 3
     TREATEMENTS = ['VCG', 'BordaCount', 'TTC']
     NUM_ROUNDS = 3 
+    MAX_BID = 100
+    MIN_BID = 0
+    TIMEOUT_INITIAL = 720
+    STARTTIME_INITIAL = 0
+    POINTS_TO_EUR = 0.05
+    SHOWUP_FEE = 3
     strings = get_strings()
 
+import itertools
+
 class Group(BaseGroup):
-    treatment_order = models.StringField()
+    def vcg_allocation(self):
+        # Helper functions
+        def total_bid_for_allocation(allocation):
+            return sum(bids[player.id_in_group][room] for player, room in zip(self.get_players(), allocation))
+
+        def assign_points(player, assigned_room):
+            room_bids = [('X', player.bid_room_X), ('Y', player.bid_room_Y), ('Z', player.bid_room_Z)]
+            sorted_bids = sorted(room_bids, key=lambda x: x[1], reverse=True)
+            tie_ranks = [rank for rank, (room, bid) in enumerate(sorted_bids) if bid == bids[player.id_in_group][assigned_room]]
+            player.points_vcg = sum(points_scale[rank] for rank in tie_ranks) // len(tie_ranks)
+
+        def calculate_payment(player, optimal_without_player):
+            payment = max_total_without_player - (max_total - bids[player.id_in_group][player.assigned_room_vcg])
+            pivotal = any(own != without for own, without in zip(optimal_allocation, optimal_without_player))
+            return (payment if pivotal else 0, pivotal)
+
+        # Initialize variables
+        players = self.get_players()
+        rooms = ['X', 'Y', 'Z']
+        points_scale = {0: 100, 1: 80, 2: 60}
+        bids = {player.id_in_group: {room: getattr(player, f'bid_room_{room}') for room in rooms} for player in players}
+
+        # Determine optimal allocation
+        max_total, optimal_allocation = max(
+            (total_bid_for_allocation(allocation), allocation)
+            for allocation in itertools.permutations(rooms)
+        )
+
+        # Assign rooms and calculate points
+        for player, room in zip(players, optimal_allocation):
+            player.assigned_room_vcg = room
+            assign_points(player, room)
+
+        # Calculate payments and pivotal status
+        for player in players:
+            # Determine optimal allocation without the current player
+            max_total_without_player, optimal_without_player = max(
+                (total_bid_for_allocation(allocation), allocation)
+                for allocation in itertools.permutations(rooms) if player.id_in_group not in allocation
+            )
+
+            player.payment_vcg, player.pivotal = calculate_payment(player, optimal_without_player)
+            player.subtracted_points_vcg = float(player.payment_vcg)
+            player.points_vcg -= player.subtracted_points_vcg
+            player.payoff_vcg = player.points_vcg * C.POINTS_TO_EUR
+
 
 class Player(BasePlayer):
-    start_time_VCG = models.IntegerField(initial=0)
-    start_time_TTC = models.IntegerField(initial=0)
-    start_time_Borda = models.IntegerField(initial=0)
+    
+    start_time_VCG = models.IntegerField(initial=C.STARTTIME_INITIAL)
+    start_time_TTC = models.IntegerField(initial=C.STARTTIME_INITIAL)
+    start_time_Borda = models.IntegerField(initial=C.STARTTIME_INITIAL)
 
-    timeout_VCG = models.IntegerField(initial=720)
-    timeout_TTC = models.IntegerField(initial=720)
-    timeout_Borda = models.IntegerField(initial=720)
+    timeout_VCG = models.IntegerField(initial=C.TIMEOUT_INITIAL)
+    timeout_TTC = models.IntegerField(initial=C.TIMEOUT_INITIAL)
+    timeout_Borda = models.IntegerField(initial=C.TIMEOUT_INITIAL)
 
+    bid_room_X = models.CurrencyField(min=C.MIN_BID, max=C.MAX_BID, verbose_name="Bid for Room X")
+    bid_room_Y = models.CurrencyField(min=C.MIN_BID, max=C.MAX_BID, verbose_name="Bid for Room Y")
+    bid_room_Z = models.CurrencyField(min=C.MIN_BID, max=C.MAX_BID, verbose_name="Bid for Room Z")
+
+    assigned_room_vcg = models.StringField() 
+    points_vcg = models.FloatField()  
+    payment_vcg = models.CurrencyField() 
+    pivotal = models.BooleanField()  
+    subtracted_points_vcg = models.FloatField() 
+    payoff_vcg = models.CurrencyField() 
 
     vcg_comprehension_1 = models.StringField(
         choices=[

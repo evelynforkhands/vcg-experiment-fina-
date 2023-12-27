@@ -1,0 +1,40 @@
+.circle-container {
+  position: relative;
+  display: inline-block;
+  float: right;
+  margin-left: 7%;
+}
+
+.info-tooltip {
+  visibility: hidden;
+  pointer-events: none;
+  width: 300px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  left: -300px;
+}
+
+.circle-hover {
+  visibility: visible;
+}
+
+.question-circle {
+  border-radius: 50%;
+  background-color: #1e90ff;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 3px solid white;
+}
+
+.question-mark {
+  color: white;
+  font-size: 45px;
+}
