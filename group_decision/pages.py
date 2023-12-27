@@ -63,4 +63,4 @@ class TaskIntro(Page):
             return 0
 
 
-page_sequence = [Introduction, TaskIntro, InfoVCG, TestVCG_1, TestVCG_2, DecisionVCG, WaitForOtherToVoteVCG, BordaCount1, BordaCount2, TTC]
+page_sequence = [Introduction, TaskIntro, InfoVCG, TestVCG_1, TestVCG_2, DecisionVCG, WaitForOtherToVoteVCG, OutcomeVCG, BordaCount1, BordaCount2, TTC]

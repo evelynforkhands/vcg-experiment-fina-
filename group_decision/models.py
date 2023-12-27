@@ -1,3 +1,4 @@
+from collections import defaultdict
 from itertools import permutations, cycle
 import itertools
 from otree.api import (
@@ -21,51 +22,88 @@ class C(BaseConstants):
 import itertools
 
 class Group(BaseGroup):
-    def vcg_allocation(self):
-        # Helper functions
-        def total_bid_for_allocation(allocation):
-            return sum(bids[player.id_in_group][room] for player, room in zip(self.get_players(), allocation))
+      def vcg_allocation(self):
+        bids = defaultdict(dict)
 
-        def assign_points(player, assigned_room):
-            room_bids = [('X', player.bid_room_X), ('Y', player.bid_room_Y), ('Z', player.bid_room_Z)]
-            sorted_bids = sorted(room_bids, key=lambda x: x[1], reverse=True)
-            tie_ranks = [rank for rank, (room, bid) in enumerate(sorted_bids) if bid == bids[player.id_in_group][assigned_room]]
-            player.points_vcg = sum(points_scale[rank] for rank in tie_ranks) // len(tie_ranks)
+        # Get the bids from each player for each room
+        for player in self.get_players():
+            print(player.id_in_group)
+            bids[player.id_in_group]['X'] = player.bid_room_X
+            bids[player.id_in_group]['Y'] = player.bid_room_Y
+            bids[player.id_in_group]['Z'] = player.bid_room_Z
 
-        def calculate_payment(player, optimal_without_player):
-            payment = max_total_without_player - (max_total - bids[player.id_in_group][player.assigned_room_vcg])
-            pivotal = any(own != without for own, without in zip(optimal_allocation, optimal_without_player))
-            return (payment if pivotal else 0, pivotal)
-
-        # Initialize variables
-        players = self.get_players()
+        # find the allocation that maximizes the total bid
+        players = list(bids.keys())
         rooms = ['X', 'Y', 'Z']
-        points_scale = {0: 100, 1: 80, 2: 60}
-        bids = {player.id_in_group: {room: getattr(player, f'bid_room_{room}') for room in rooms} for player in players}
+        max_total = -1
 
-        # Determine optimal allocation
-        max_total, optimal_allocation = max(
-            (total_bid_for_allocation(allocation), allocation)
-            for allocation in itertools.permutations(rooms)
-        )
+        for allocation in itertools.permutations(rooms):
+            total = sum(bids[player][room] for player, room in zip(players, allocation))
+            if total > max_total:
+                max_total = total
+                optimal_allocation = allocation
 
-        # Assign rooms and calculate points
-        for player, room in zip(players, optimal_allocation):
+        for player, room in zip(self.get_players(), optimal_allocation):
             player.assigned_room_vcg = room
-            assign_points(player, room)
 
-        # Calculate payments and pivotal status
-        for player in players:
-            # Determine optimal allocation without the current player
-            max_total_without_player, optimal_without_player = max(
-                (total_bid_for_allocation(allocation), allocation)
-                for allocation in itertools.permutations(rooms) if player.id_in_group not in allocation
-            )
+            bids_ = [
+                (player.bid_room_X, 'X'),
+                (player.bid_room_Y, 'Y'),
+                (player.bid_room_Z, 'Z'),
+            ]
 
-            player.payment_vcg, player.pivotal = calculate_payment(player, optimal_without_player)
+            bids_.sort(reverse=True)
+
+            # Map from rank to points
+            rank_to_points = {0: 100, 1: 80, 2: 60}
+
+            # Find the ranks of the assigned room and handle equal bids
+            assigned_room_ranks = [i for i, bid in enumerate(bids_) if bid[1] == player.assigned_room_vcg]
+
+            # Determine if there is a tie by checking if there are other rooms with the same bid as the assigned room
+            tie_ranks = [i for i, bid in enumerate(bids_) if bid[0] == bids_[assigned_room_ranks[0]][0]]
+
+            # If there's a tie, average the points of all the tied ranks; otherwise, just give the points for the assigned room's rank
+            if len(tie_ranks) > 1:
+                player.points_vcg = int(sum(rank_to_points.get(rank, 0) for rank in tie_ranks) / len(tie_ranks))
+            else:
+                player.points_vcg = rank_to_points[assigned_room_ranks[0]]
+
+
+        # Calculate the payment for each player
+        for player in self.get_players():
+            others = [p for p in players if p != player.id_in_group]
+            max_total_without_player = -1
+
+            print(f"\nAll possible allocations and total bids without Player {player.id_in_group}:")
+            for allocation in itertools.permutations(rooms, len(others)):
+                total = sum(bids[p][room] for p, room in zip(others, allocation))
+                print(f"Allocation: {dict(zip(others, allocation))}, Total bid: €{total}")
+                if total > max_total_without_player:
+                    max_total_without_player = total
+                    optimal_allocation_without_player = allocation
+
+            print(f"\nOptimal Allocation without Player {player.id_in_group}:")
+            for other, room in zip(others, optimal_allocation_without_player):
+                print(f"Player {other} gets room {room}")
+
+            # Player is pivotal if the room assignment changes for at least one other player when they don't participate
+            allocation_without_player = tuple(
+                room for p, room in zip(players, optimal_allocation) if p != player.id_in_group)
+            if any(room != room_without for room, room_without in
+                   zip(optimal_allocation_without_player, allocation_without_player)):
+                player.payment_vcg = max_total_without_player - (
+                        max_total - bids[player.id_in_group][player.assigned_room_vcg])
+                if player.payment_vcg > 0:
+                    player.pivotal = 1
+            else:
+                player.payment_vcg = 0
+            print(f"\nPlayer {player.id_in_group} is pivotal: {player.pivotal}")
+            print(player)
             player.subtracted_points_vcg = float(player.payment_vcg)
-            player.points_vcg -= player.subtracted_points_vcg
+            player.points_vcg = player.points_vcg - float(player.subtracted_points_vcg)
             player.payoff_vcg = player.points_vcg * C.POINTS_TO_EUR
+
 
 
 class Player(BasePlayer):
@@ -85,7 +123,7 @@ class Player(BasePlayer):
     assigned_room_vcg = models.StringField() 
     points_vcg = models.FloatField()  
     payment_vcg = models.CurrencyField() 
-    pivotal = models.BooleanField()  
+    pivotal = models.BooleanField(initial=False)  
     subtracted_points_vcg = models.FloatField() 
     payoff_vcg = models.CurrencyField() 
 
@@ -118,6 +156,12 @@ class Player(BasePlayer):
         verbose_name='What does it mean for a tenant to have a decisive influence on the final matching?',
         blank=False
     )
+
+    def get_sorted_bids(self):
+        return sorted(
+            [('X', self.bid_room_X), ('Y', self.bid_room_Y), ('Z', self.bid_room_Z)],
+            key=lambda x: x[1], reverse=True
+        )
 
 class Subsession(BaseSubsession):
 

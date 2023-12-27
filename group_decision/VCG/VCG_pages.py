@@ -84,3 +84,14 @@ class WaitForOtherToVoteVCG(WaitPage):
             return False
         self.participant.vars['reached_wait_page'] = True
         return True
+    
+class OutcomeVCG(VCGPage):
+    def vars_for_template(self):
+        return {
+            'assigned_room_vcg': self.player.assigned_room_vcg,
+            'pivotal': self.player.field_maybe_none('pivotal'),
+            'payment': self.player.field_maybe_none('payment_vcg'),
+            'points': self.player.field_maybe_none('points_vcg'),
+            'strings': C.strings,
+            'bids': self.player.get_sorted_bids(),
+        }
