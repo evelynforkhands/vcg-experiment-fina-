@@ -41,6 +41,26 @@ class Introduction(Page):
             self.player.start_time_VCG = int(time.time())
         else:
             return 0
+        
+
+class TaskIntro(Page):
+
+    def vars_for_template(self):
+        return {
+            'order': self.group.round_number,
+            'strings': C.strings
+        }
+    
+    def before_next_page(self):
+        import time
+        if is_correct_treatment(self.player, 'BordaCount'):
+            self.player.start_time_Borda = int(time.time())
+        elif is_correct_treatment(self.player, 'TTC'):
+            self.player.start_time_TTC = int(time.time())
+        elif is_correct_treatment(self.player, 'VCG'):
+            self.player.start_time_VCG = int(time.time())
+        else:
+            return 0
 
 
-page_sequence = [Introduction, VCG, InfoVCG, BordaCount1, BordaCount2, TTC]
+page_sequence = [Introduction, TaskIntro, VCG, InfoVCG, BordaCount1, BordaCount2, TTC]

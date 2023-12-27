@@ -7,10 +7,6 @@ def get_strings():
     return strings
 
 def is_correct_treatment(player, treatment):
-    print(player.participant.vars)
-    print(player.round_number)
-    print(player.participant.vars.get(f'treatment_round_{player.round_number}'), 'treatment_round')
-    print(treatment, 'treatment')
     current_round_treatment = player.participant.vars.get(f'treatment_round_{player.round_number}')
     return treatment == current_round_treatment
 
