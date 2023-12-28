@@ -1,7 +1,6 @@
 {% extends "_templates/global/Page.html" %}
 {{ block content }}
 
-
 <div class="container">
   <div class="row justify-content-center">
     <div class="col-md-8">
@@ -9,15 +8,10 @@
         <div class="card-body">
           <h2 class="card-title text-center">Matching</h2>
           <p class="card-text text-center">
-           {{strings.outcome_room|safe}} {{assigned_room}}. You assigned {{assigned_room_points}} {% if assigned_room_points == "1" %}
-                    point
-                    {% else %}
-                    points
-                    {% endif %}
-               to that room,
-              indicating that you liked it {{liked_magnitude}}.
+            {{strings.outcome_room|safe}} {{ assigned_room_ttc }}.
+            {{strings.outcome_ranking|safe}} {{assigned_room_rank}}.
           </p>
-            <p class="card-text text-center">
+          <p class="card-text text-center">
                 You received {{points}} points for this part.
             </p>
         </div>
@@ -26,6 +20,7 @@
   </div>
 </div>
 <br>
+
 <div class="container">
     <div class="d-flex align-items-center justify-content-between mb-3">
       {{ next_button}}

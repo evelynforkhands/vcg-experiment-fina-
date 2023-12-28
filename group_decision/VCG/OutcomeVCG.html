@@ -13,7 +13,7 @@
                         {{strings.outcome_VCG_room|safe}} {{ assigned_room_vcg }}.
                         {{strings.outcome_VCG_ranking|safe}}
                         {% for room, bid in bids %}
-                        <p>Room {{ room }}: {{ bid }} points</p>
+                        <p>Room {{ room }}: {{ bid }}</p>
                     {% endfor %}
 
                     {% if pivotal == 0 %}

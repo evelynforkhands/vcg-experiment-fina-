@@ -75,6 +75,12 @@ class C(BaseConstants):
         [3, '1 point'],
     ]
 
+    ttc_choices = [
+            [1, '1st choice'],
+            [2, '2nd choice'],
+            [3, '3rd choice'],
+        ]
+
 
 import itertools
 
@@ -184,7 +190,38 @@ class Group(BaseGroup):
             # Remove assigned player from further consideration
             players.remove(highest_scoring_player)
 
+    def assign_rooms_ttc(self):
+        players = self.get_players()
+        unassigned_players = players.copy()
+        unassigned_rooms = ['X', 'Y', 'Z']
+        points_per_rank = {1: 100, 2: 80, 3: 60}
 
+        while unassigned_players:
+            starting_player = unassigned_players[0]
+            cycle = []
+            current_player = starting_player
+
+            while current_player not in cycle:
+                cycle.append(current_player)
+                favorite_room = current_player.get_favorite_room(unassigned_rooms)
+                current_player = self.get_highest_ranking_player(favorite_room, unassigned_players)
+
+            for player in cycle:
+                favorite_room = player.get_favorite_room(unassigned_rooms)
+                player.assigned_room = favorite_room
+                player.assigned_room_rank = int(getattr(player, f'ttc_room_{favorite_room}'))
+                player.points = points_per_rank.get(player.assigned_room_rank, 0)
+                player.payoff = player.points * C.POINTS_TO_EUR
+                unassigned_players.remove(player)
+                unassigned_rooms.remove(favorite_room)
+
+    def get_highest_ranking_player(self, room, unassigned_players):
+        # Create a list of tuples (player, rank) for the given room
+        player_rankings = [(p, getattr(p, f'ttc_room_{room}')) for p in unassigned_players]
+
+        # Sort the list by rank and return the player with the highest rank
+        player_rankings.sort(key=lambda x: x[1])
+        return player_rankings[0][0]
 class Player(BasePlayer):
     
     start_time_VCG = models.IntegerField(initial=C.STARTTIME_INITIAL)
@@ -203,22 +240,50 @@ class Player(BasePlayer):
         choices=C.borda_choices,
         widget=widgets.RadioSelectHorizontal,
         verbose_name='Room X',
-        blank=False
+        blank=False,
+        initial=1
     )
 
     borda_count_room_Y = models.StringField(
         choices=C.borda_choices,
         widget=widgets.RadioSelectHorizontal,
         verbose_name='Room Y',
-        blank=False
+        blank=False,
+        initial=2
     )
 
     borda_count_room_Z = models.StringField(
         choices=C.borda_choices,
         widget=widgets.RadioSelectHorizontal,
         verbose_name='Room Z',
-        blank=False
+        blank=False,
+        initial=3
     )
+
+    ttc_room_X = models.StringField(
+        choices=C.ttc_choices,
+        widget=widgets.RadioSelectHorizontal,
+        verbose_name='Room X',
+        blank=False,
+        initial=1
+    )
+
+    ttc_room_Y = models.StringField(
+        choices=C.ttc_choices,
+        widget=widgets.RadioSelectHorizontal,
+        verbose_name='Room Y',
+        blank=False,
+        initial=2
+    )
+    
+    ttc_room_Z = models.StringField(
+        choices=C.ttc_choices,
+        widget=widgets.RadioSelectHorizontal,
+        verbose_name='Room Z',
+        blank=False,
+        initial=3
+    )
+
 
     assigned_room = models.StringField() 
     assigned_room_rank = models.IntegerField()
@@ -327,6 +392,19 @@ class Player(BasePlayer):
             [('X', self.bid_room_X), ('Y', self.bid_room_Y), ('Z', self.bid_room_Z)],
             key=lambda x: x[1], reverse=True
         )
+    
+    def get_favorite_room(self, unassigned_rooms):
+        rankings = {
+            'X': self.field_maybe_none('ttc_room_X'),
+            'Y': self.field_maybe_none('ttc_room_Y'),
+            'Z': self.field_maybe_none('ttc_room_Z'),
+        }
+        ranked_rooms = sorted(rankings.items(), key=lambda item: item[1])
+
+        # Return the highest ranked unassigned room
+        for room, rank in ranked_rooms:
+            if room in unassigned_rooms:
+                return room
 
 class Subsession(BaseSubsession):
 

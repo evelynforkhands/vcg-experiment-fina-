@@ -68,7 +68,7 @@ class DecisionVCG(VCGPage):
 
 class WaitForVCG(WaitPage):
     form_model = 'player'
-    body_text = "Please wait for other participants to assign points to available rooms."
+    body_text = "Please wait for other participants to bid on available rooms."
     def is_displayed(self):
         return is_correct_treatment(self, 'VCG')
     
