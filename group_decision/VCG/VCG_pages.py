@@ -1,4 +1,4 @@
-from ..helpers import PageWithTimeout, is_correct_treatment, get_strings
+from ..helpers import PageWithTimeout, is_correct_treatment, validate_test_answer
 from ..models import Player, C
 from otree.api import WaitPage
 
@@ -28,21 +28,17 @@ class TestVCG_1(VCGPage):
     form_fields = ['vcg_comprehension_1']
 
     def error_message(self: Player, values):
-        if values['vcg_comprehension_1'] == '2':
-            self.number_of_tries_vcg += 1
-            return "This answer is incorrect. The app takes into account all the bids, and matches tenants to rooms in such a way that the sum of all their bids is maximised. Remember, the higher a tenant's bid for a room, the more they like that room."
-        elif values['vcg_comprehension_1'] == '3':
-            self.number_of_tries_vcg += 1
-            return "This answer is incorrect. The matching is not random. The app takes into account all the bids, and matches tenants to rooms in such a way that the sum of all their bids is maximised. Remember, the higher a tenant's bid for a room, the more they like that room."
-        elif values['vcg_comprehension_1'] == '4':
-            self.number_of_tries_vcg += 1
-            return "This answer is incorrect. The highest individual bid does not determine the matching. The app takes into account all the bids, and matches tenants to rooms in such a way that the sum of all their bids is maximised.  "
-
+        error_messages = {
+            '2': "This answer is incorrect. The app takes into account all the bids, and matches tenants to rooms in such a way that the sum of all their bids is maximised. Remember, the higher a tenant's bid for a room, the more they like that room.",
+            '3': "This answer is incorrect. The matching is not random. The app takes into account all the bids, and matches tenants to rooms in such a way that the sum of all their bids is maximised. Remember, the higher a tenant's bid for a room, the more they like that room.",
+            '4': "This answer is incorrect. The highest individual bid does not determine the matching. The app takes into account all the bids, and matches tenants to rooms in such a way that the sum of all their bids is maximised.  "
+        }
+        return validate_test_answer(self, values['vcg_comprehension_1'], error_messages)
+    
     def is_displayed(self):
         if not PageWithTimeout.is_displayed(self):
             return False
         return is_correct_treatment(self, 'VCG')
-
 
 
 class TestVCG_2(VCGPage):
@@ -50,16 +46,10 @@ class TestVCG_2(VCGPage):
     form_fields = ['vcg_comprehension_2']
 
     def error_message(self, values):
-        if values['vcg_comprehension_2'] == '2':
-            self.number_of_tries_vcg += 1
-            return f"This answer is incorrect. Decisive influence means that if a tenant had not participated in the bidding, other tenants would have been matched to rooms they like more. "
-        elif values['vcg_comprehension_2'] == '3':
-            self.number_of_tries_vcg += 1
-            return f"This answer is incorrect. Decisive influence means that if a tenant had not participated in the bidding, other tenants would have been matched to rooms they like more. "
-        elif values['vcg_comprehension_2'] == '4':
-            self.number_of_tries_vcg += 1
-            return f"This answer is incorrect. Decisive influence means that if a tenant had not participated in the bidding, other tenants would have been matched to rooms they like more. "
-
+        if values['vcg_comprehension_2'] in ['2', '3', '4']:
+            self.player.number_of_tries += 1
+            return "This answer is incorrect. Decisive influence means that if a tenant had not participated in the bidding, other tenants would have been matched to rooms they like more."
+        return None
 
 class DecisionVCG(VCGPage):
     form_model = 'player'
@@ -71,19 +61,20 @@ class DecisionVCG(VCGPage):
             'strings': C.strings,
         }
     
-class WaitForOtherToVoteVCG(WaitPage):
-    body_text = 'Please wait for the other participants to bid on the available rooms.'
+    def before_next_page(self):
+        #set reached_wait_page to True for the player
+        self.player.participant.vars['reached_wait_page'] = True
 
-    def after_all_players_arrive(self):
-        for p in self.group.get_players():
-            p.participant.vars['reached_wait_page'] = False
-        self.group.vcg_allocation()
 
+class WaitForVCG(WaitPage):
+    form_model = 'player'
+    body_text = "Please wait for other participants to assign points to available rooms."
     def is_displayed(self):
-        if not PageWithTimeout.is_displayed(self):
-            return False
-        self.participant.vars['reached_wait_page'] = True
-        return True
+        return is_correct_treatment(self, 'VCG')
+    
+    def after_all_players_arrive(self):
+        self.group.vcg_allocation()
+    
     
 class OutcomeVCG(VCGPage):
     def vars_for_template(self):

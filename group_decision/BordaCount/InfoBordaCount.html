@@ -1,0 +1,109 @@
+{{ block content }}
+
+{% load static %}
+<link href="{% static 'style.css' %}" rel="stylesheet" type="text/css">
+
+<style>
+    table {
+        width: 60%;
+        border-collapse: collapse;
+        border: 1px solid black;
+        text-align: center;
+        border-radius: 8px;
+        overflow: hidden;
+        margin: auto;
+    }
+
+    th {
+        background-color: #f2f2f2;
+        border: 1px solid black;
+
+        padding: 15px;
+    }
+
+    td {
+        border: 1px solid black;
+        padding: 15px;
+    }
+
+    .highlight {
+        background-color: #ffcc80;
+    }
+
+    .winning {
+        background-color: #b393d3;
+    }
+
+    .text {
+        text-align: justify;
+        width: 90%;
+        margin: auto
+    }
+</style>
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Setting</h5>
+                    <p class="card-text">
+                        {{strings.setting_imagine|safe}}
+                        {{strings.setting_specifics_BordaCount|safe}}
+                    </p>
+                </div>
+            </div>
+            <p/>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Matching app</h5>
+                    <p class="card-text">
+                        {{strings.matching_app_BordaCount|safe}}
+                    </p>
+                </div>
+            </div>
+            <p/>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Example</h5>
+                    <p class="card-text">
+                    <p>
+                        {{strings.example_intro_BordaCount|safe}}
+                        {% include "_templates/BordaCount/room_ranking.html" %}
+                    </p>
+
+                    <p>
+                        {{strings.example_outro_BordaCount|safe}}
+                    </p>
+                    {% include "_templates/BordaCount/room_total_points.html" %}
+                </div>
+                </p>
+            </div><p/>
+            <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Bonus payment</h5>
+                <p class="card-text">
+
+                {{ strings.payoff_TTC_BordaCount|safe}}
+
+                </p>
+                <p class="card-text">
+                {{ strings.payoff_example_BordaCount|safe}}
+
+                </p>
+                <p class="card-text">
+                            {{ strings.payoff_info|safe}}
+
+                        </p>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+<p/>
+<div class="container">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        {{ next_button}}
+        <p class="text-muted mb-0">Part {{ group.round_number }}/3</p>
+    </div>
+</div>
+{{ endblock }}

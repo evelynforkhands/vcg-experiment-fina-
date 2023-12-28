@@ -1,3 +1,5 @@
+{% extends "_templates/global/Page.html" %}
+
 {{ block title }}
 Comprehension test (1/2)
 {{ endblock }}
@@ -5,7 +7,6 @@ Comprehension test (1/2)
 {% block scripts %}
     <script src="{% static 'global/shuffle_answer_options.js' %}"></script>
 {% endblock %}
-
 
 {{formfields}}
 <div class="container">

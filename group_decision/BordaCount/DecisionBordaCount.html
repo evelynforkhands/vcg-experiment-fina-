@@ -1,31 +1,22 @@
-{% extends "_templates/global/Page.html" %}
+
 {{ block title }}
     Decision
 {{ endblock }}
+
+
 {{ block content }}
-
-
-
 {% block css %}
     <link rel="stylesheet" type="text/css" href="{% static 'help_question_mark_style.css' %}">
 {% endblock %}
 
 <div class="circle-container">
   <span class="info-tooltip">
-    <ul>
-    <li>
-        <p>There are 3 rooms in the flat, each with a different size and rent.</p>
-    </li>
-    <li>
-        <p>The rent is <b>fixed</b>, meaning everyone will pay the rent of the respective room.</p>
-    </li>
-    <li>
-
-
-        <p>On top of the rent, according to the decision-making process, <b>those who are pivotal will pay an additional fee that will go to a home improvement fund</b> and can be used in the future for common renovations/etc.</p>
-        <span style="background-color: #ffd700; color: #333; padding: 3px;">If you are <b>pivotal</b> to the decision, you will have to contribute your fee to the home improvement fund.</span>
-    </li>
-</ul>
+      <ul>
+        <li>Each tenant ranks the rooms, assigning points based on preference (1st choice: 3 points, 2nd choice: 2 points, 3rd choice: 1 point).</li>
+        <li>The points for each room are totalled, the room with the highest points is considered the most desired.</li>
+        <li>The most desired room is allocated to the tenant who ranked it the highest. In case of a tie in ranking, a random draw determines the allocation.</li>
+        <li>The process repeats until all rooms are allocated.</li>
+      </ul>
   </span>
   <div class="circle-hover" onmouseover="this.previousElementSibling.style.visibility='visible';" onmouseleave="this.previousElementSibling.style.visibility='hidden'">
     <div class="question-circle">
@@ -33,19 +24,20 @@
     </div>
   </div>
 </div>
-
 <p class="card-text">
     {{strings.decision_intro|safe}}
 </p>
 
 <img src="{{ static 'Rooms.png' }}"/>
-<p><b>{{strings.decision_instructions_VCG|safe}}</b></p>
+
+<p><b>{{strings.decision_instructions_TTC|safe}}</b></p>
 {{formfields}}
+
+
 <div class="container">
     <div class="d-flex align-items-center justify-content-between mb-3">
       {{ next_button}}
         <p class="text-muted mb-0">Part {{ group.round_number }}/3</p>
     </div>
 </div>
-
 {{ endblock }}

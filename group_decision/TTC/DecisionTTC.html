@@ -1,31 +1,24 @@
-{% extends "_templates/global/Page.html" %}
+
 {{ block title }}
     Decision
 {{ endblock }}
+
+
 {{ block content }}
-
-
 
 {% block css %}
     <link rel="stylesheet" type="text/css" href="{% static 'help_question_mark_style.css' %}">
 {% endblock %}
 
+
 <div class="circle-container">
   <span class="info-tooltip">
     <ul>
-    <li>
-        <p>There are 3 rooms in the flat, each with a different size and rent.</p>
-    </li>
-    <li>
-        <p>The rent is <b>fixed</b>, meaning everyone will pay the rent of the respective room.</p>
-    </li>
-    <li>
-
-
-        <p>On top of the rent, according to the decision-making process, <b>those who are pivotal will pay an additional fee that will go to a home improvement fund</b> and can be used in the future for common renovations/etc.</p>
-        <span style="background-color: #ffd700; color: #333; padding: 3px;">If you are <b>pivotal</b> to the decision, you will have to contribute your fee to the home improvement fund.</span>
-    </li>
-</ul>
+      <li>Tenants rank the rooms based on their preference.</li>
+        <li>Each tenant points to their highest available choice, and rooms point back to the first (tenant order, random) tenant who chose it.</li>
+        <li>If a tenant and a room point to each other, they form a 'cycle'. The room is allocated to the tenant in the cycle and both are removed from the process.</li>
+        <li>The procedure is repeated until all rooms are allocated.</li>
+    </ul>
   </span>
   <div class="circle-hover" onmouseover="this.previousElementSibling.style.visibility='visible';" onmouseleave="this.previousElementSibling.style.visibility='hidden'">
     <div class="question-circle">
@@ -39,8 +32,11 @@
 </p>
 
 <img src="{{ static 'Rooms.png' }}"/>
-<p><b>{{strings.decision_instructions_VCG|safe}}</b></p>
-{{formfields}}
+
+<p><b>{{strings.decision_instructions_TTC|safe}}</b></p>
+{{ formfields}}
+
+
 <div class="container">
     <div class="d-flex align-items-center justify-content-between mb-3">
       {{ next_button}}

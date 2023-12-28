@@ -69,11 +69,17 @@ class C(BaseConstants):
         [9, '9: Very, very high mental effort']
     ]
 
+    borda_choices = [
+        [1, '3 points'],
+        [2, '2 points'],
+        [3, '1 point'],
+    ]
+
 
 import itertools
 
 class Group(BaseGroup):
-      def vcg_allocation(self):
+    def vcg_allocation(self):
         bids = defaultdict(dict)
 
         # Get the bids from each player for each room
@@ -128,14 +134,14 @@ class Group(BaseGroup):
             # print(f"\nAll possible allocations and total bids without Player {player.id_in_group}:")
             for allocation in itertools.permutations(rooms, len(others)):
                 total = sum(bids[p][room] for p, room in zip(others, allocation))
-                print(f"Allocation: {dict(zip(others, allocation))}, Total bid: €{total}")
+                # print(f"Allocation: {dict(zip(others, allocation))}, Total bid: €{total}")
                 if total > max_total_without_player:
                     max_total_without_player = total
                     optimal_allocation_without_player = allocation
 
             # print(f"\nOptimal Allocation without Player {player.id_in_group}:")
-            for other, room in zip(others, optimal_allocation_without_player):
-                print(f"Player {other} gets room {room}")
+            # for other, room in zip(others, optimal_allocation_without_player):
+            #     print(f"Player {other} gets room {room}")
 
             # Player is pivotal if the room assignment changes for at least one other player when they don't participate
             allocation_without_player = tuple(
@@ -155,6 +161,29 @@ class Group(BaseGroup):
             player.payoff = player.points * C.POINTS_TO_EUR
 
 
+    def assign_rooms_borda(self):
+        players = self.get_players()
+        print(players)
+        rooms = ['X', 'Y', 'Z']
+        points_per_rank = {1: 100, 2: 80, 3: 60}
+
+        for room in rooms:
+            # Calculate total points for each room
+            room_points = {player.id_in_group: (4 - int(getattr(player, f'borda_count_room_{room}') or 0))
+                        for player in players}
+
+            # Assign room to the player with the highest points for this room
+            highest_scoring_player_id = max(room_points, key=room_points.get)
+            highest_scoring_player = next(p for p in players if p.id_in_group == highest_scoring_player_id)
+            highest_scoring_player.assigned_room = room
+            highest_scoring_player.assigned_room_rank = int(getattr(highest_scoring_player, f'borda_count_room_{room}'))
+
+            highest_scoring_player.points = points_per_rank[int(getattr(highest_scoring_player, f'borda_count_room_{room}'))]
+            highest_scoring_player.payoff = highest_scoring_player.points * C.POINTS_TO_EUR
+
+            # Remove assigned player from further consideration
+            players.remove(highest_scoring_player)
+
 
 class Player(BasePlayer):
     
@@ -169,6 +198,27 @@ class Player(BasePlayer):
     bid_room_X = models.CurrencyField(min=C.MIN_BID, max=C.MAX_BID, verbose_name="Bid for Room X")
     bid_room_Y = models.CurrencyField(min=C.MIN_BID, max=C.MAX_BID, verbose_name="Bid for Room Y")
     bid_room_Z = models.CurrencyField(min=C.MIN_BID, max=C.MAX_BID, verbose_name="Bid for Room Z")
+
+    borda_count_room_X = models.StringField(
+        choices=C.borda_choices,
+        widget=widgets.RadioSelectHorizontal,
+        verbose_name='Room X',
+        blank=False
+    )
+
+    borda_count_room_Y = models.StringField(
+        choices=C.borda_choices,
+        widget=widgets.RadioSelectHorizontal,
+        verbose_name='Room Y',
+        blank=False
+    )
+
+    borda_count_room_Z = models.StringField(
+        choices=C.borda_choices,
+        widget=widgets.RadioSelectHorizontal,
+        verbose_name='Room Z',
+        blank=False
+    )
 
     assigned_room = models.StringField() 
     assigned_room_rank = models.IntegerField()
@@ -188,6 +238,8 @@ class Player(BasePlayer):
     benevolence = likert_field('Benevolence', C.BENEVOLENCE_VN)
     competence = likert_field('Competence', C.COMPETENCY_VN)
     integrity = likert_field('Integrity', C.INTEGRITY_VN)
+
+    number_of_tries = models.IntegerField(initial=0)
 
     vcg_comprehension_1 = models.StringField(
         choices=[
@@ -218,6 +270,57 @@ class Player(BasePlayer):
         verbose_name='What does it mean for a tenant to have a decisive influence on the final matching?',
         blank=False
     )
+
+    borda_comprehension_1 = models.StringField(
+        choices=[
+            [1, "No. It is possible for a tenant to get a room they assigned the least number of points to."],
+            [2, "Yes, the app ensures no tenant ever gets the room they assigned the least number of points to."],
+            [3, "It depends on the specific points assigned to rooms by the tenants."],
+            [4, "The app does not account for the room that a tenants assigns the least number of points to."]
+        ],
+        widget=widgets.RadioSelect,
+        verbose_name='Does the matching app guarantee that each tenant will never be matched to a room they assigned the least number of points to?',
+        blank=False
+    )
+
+    borda_comprehension_2 = models.StringField(
+        choices=[
+            [1, "The app performs a random match."],
+            [2, "The tenant who submitted their points first is matched to the room."],
+            [3, "The room is matched to the tenant with the next highest points for this room."],
+            [4, "The tenants who tied must re-rank their choices."]
+        ],
+        widget=widgets.RadioSelect,
+        verbose_name='In case of a tie for the room with most points, how is the tenant who will be matched to it decided among those who assigned it the most points?',
+        blank=False
+    )
+
+    ttc_comprehension_1 = models.StringField(
+        choices=[
+            [1,
+             'For each room, the app notes which tenants liked it most, and matches tenants to rooms based on that.'],
+            [2,
+             'The app notes the order in which the rankings were submitted, and matches tenants to rooms based on this order.'],
+            [3, 'The app notes the tenants\' last choice, and matches tenants to rooms based on that.'],
+            [4, 'The app notes the tenants\' group numbers only, and matches tenants to rooms based on that.'],
+        ],
+        widget=widgets.RadioSelectHorizontal,
+        verbose_name='What does the app note when matching tenants to rooms?',
+        blank=False
+    )
+
+    ttc_comprehension_2 = models.StringField(
+        choices=[
+            [1, 'The app performs a random match based on the tenant number assigned to them.'],
+            [2, 'The tenant who was assigned the lowest tenant number is matched to the room.'],
+            [3, 'The tenant who ranked the room as the second choice is matched to the room.'],
+            [4, 'The tenant who submitted their rankings first gets the room.'],
+        ],
+        widget=widgets.RadioSelect,
+        verbose_name='If more than one tenant liked a room best, how is the tenant who will be matched to it decided among those who liked it best?',
+        blank=False
+    )
+
 
     def get_sorted_bids(self):
         return sorted(

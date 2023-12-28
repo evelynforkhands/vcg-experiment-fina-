@@ -2,6 +2,7 @@
 from otree.api import Page
 
 from .VCG.VCG_pages import *
+from .BordaCount.BordaCount_pages import *
 from .helpers import PageWithTimeout, is_correct_treatment, get_strings
 from .models import Player, C
 
@@ -84,6 +85,7 @@ class Satisfaction(PageWithTimeout):
             'assigned_room': self.player.assigned_room,
             'bids': self.player.get_sorted_bids() if current_treatment == 'VCG' else None,
             'pivotal': self.player.pivotal if current_treatment == 'VCG' else None,
+            'payment': self.player.payment_vcg if current_treatment == 'VCG' else None, 
         }
     
 
@@ -100,6 +102,7 @@ class Trust(PageWithTimeout):
             'strings': C.strings,
             'treatment': current_treatment
         }
+    
 
 
-page_sequence = [Introduction, TaskIntro, InfoVCG, TestVCG_1, TestVCG_2, DecisionVCG, WaitForOtherToVoteVCG, OutcomeVCG, TaskOutro, Satisfaction, Trust, BordaCount1, BordaCount2, TTC]
+page_sequence = [Introduction, TaskIntro, InfoVCG, TestVCG_1, TestVCG_2, DecisionVCG, WaitForVCG, OutcomeVCG,InfoBordaCount, TestBordaCount_1, TestBordaCount_2, DecisionBordaCount,WaitForBordaCount, OutcomeBordaCount,  TaskOutro, Satisfaction, Trust, ]
