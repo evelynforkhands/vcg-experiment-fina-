@@ -25,14 +25,9 @@ class PageWithTimeout(Page):
             return self.player.start_time_VCG + self.player.timeout_VCG - time.time()
         else:
             return 0
-        
     def app_after_this_page(self, upcoming_apps):
-
-        if self.get_timeout_seconds() <= 0 and self.player.participant.vars.get(f'treatment_round_{self.player.round_number}') is not None:
-            self.participant.vars['round_number'] = self.round_number
+        if self.timeout_happened:
             return 'timeout_app'
-        else:
-            return None
 
 def validate_test_answer(self, value, error_messages):
     if value in error_messages:

@@ -1,0 +1,20 @@
+{{ block content }}
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm mt-5" style="background-color: #f8f9fa;">
+        <div class="card-body">
+          <h2 class="card-title text-center">Thank You for Participating!</h2>
+          <p class="card-text-center">Part {{part_to_pay}} was randomly selected for payout. You received {{payoff_points}} points for this part.</p>
+          <p class="card-text text-center">{{payoff}} = &euro;{{payoff_part}}.</p>
+          <p class="card-text text-center">Your overall payout is thus: <br>show-up fee (&euro;3) + Part {{part_to_pay}} (&euro;{{payoff_part}}) = {{total_payoff}}.</p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div><br>
+{{ next_button}}
+
+{{ endblock}}

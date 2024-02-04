@@ -71,6 +71,14 @@ class TaskOutro(PageWithTimeout):
             'order': self.group.round_number,
             'strings': C.strings
         }
+    
+    def before_next_page(self):
+        print('before_next_page')
+        print(self.player.round_number)
+        print(self.player.round_number)
+        if self.player.round_number == C.NUM_ROUNDS:
+            self.player.group.set_payoffs_1()
+        
 
 class Satisfaction(PageWithTimeout):
     form_model = 'player'
@@ -105,6 +113,23 @@ class Trust(PageWithTimeout):
             'treatment': current_treatment
         }
     
+class Payoff(Page):
+    form_model = 'player'
+
+    def vars_for_template(self):
+        print()
+        return {
+            'payoff': self.participant.payoff,
+            'payoff_part': int(self.player.payoff_points) * C.POINTS_TO_EUR,
+            'part_to_pay': self.player.part_to_pay,
+            'payoff_points': int(self.player.payoff_points),
+            'total_payoff': self.participant.payoff_plus_participation_fee(),
+
+        }
+
+    def is_displayed(self):
+        return self.round_number == C.NUM_ROUNDS
 
 
-page_sequence = [Introduction, TaskIntro, InfoVCG, TestVCG_1, TestVCG_2, DecisionVCG, WaitForVCG, OutcomeVCG,InfoBordaCount, TestBordaCount_1, TestBordaCount_2, DecisionBordaCount,WaitForBordaCount, OutcomeBordaCount, InfoTTC, TestTTC_1, TestTTC_2, DecisionTTC, WaitForTTC, OutComeTTC, TaskOutro, Satisfaction, Trust, ]
+
+page_sequence = [Introduction, TaskIntro, InfoVCG, TestVCG_1, TestVCG_2, DecisionVCG, WaitForVCG, OutcomeVCG,InfoBordaCount, TestBordaCount_1, TestBordaCount_2, DecisionBordaCount,WaitForBordaCount, OutcomeBordaCount, InfoTTC, TestTTC_1, TestTTC_2, DecisionTTC, WaitForTTC, OutComeTTC, TaskOutro, Satisfaction, Trust, Payoff]

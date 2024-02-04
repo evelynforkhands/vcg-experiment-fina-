@@ -1,0 +1,23 @@
+{{ block content }}
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm mt-5" style="background-color: #f8f9fa;">
+        <div class="card-body">
+          <h2 class="card-title text-center">Experiment could not be completed</h2>
+          <p class="card-text text-center">Unfortunately, the experiment could not be completed, because some members of your group took too long to fill out some pages or dropped out.</p>
+          <p class="card-text text-center">{{explanation}}</p>
+
+          <p class="card-text text-center">Your overall payout is &euro;{{total_payoff_}}.</p>
+          <p class="card-text text-center">Please enter your IBAN, BIC and full name for the wire transfer below to receive your payment. Your payment information is collected for facilitating payment only and will not be used for any other purposes.{{formfields}}</p>
+
+        </div>
+
+        {{next_button}}
+      </div>
+    </div>
+  </div>
+</div><br>
+
+{{ endblock}}

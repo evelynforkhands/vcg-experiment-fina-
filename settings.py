@@ -9,14 +9,16 @@ SESSION_CONFIGS = [
         'display_name': "Experiment",
         'num_demo_participants': 3,
         'players_per_group': 3,
-        'app_sequence': ['group_decision'],
+        'app_sequence': ['group_decision', 'timeout_app'],
         'wait_for_all_groups': False,
+        'participation_fee': 3.00,
+        'real_world_currency_per_point': 0.05,
     },
 ]
 
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point= 0.05, participation_fee=0.00, doc=""
+    real_world_currency_per_point= 0.05, participation_fee=3.00, doc=""
 )
 
 PARTICIPANT_FIELDS = ['TREATEMENT_ORDER', 'reached_wait_page', 'treatment_round_1', 'treatment_round_2', 'treatment_round_3']

@@ -1,6 +1,7 @@
 from collections import defaultdict
 from itertools import permutations, cycle
 import itertools
+import random
 from otree.api import (
     models, BaseGroup, BasePlayer, BaseSubsession, BaseConstants, widgets
 )
@@ -85,6 +86,7 @@ class C(BaseConstants):
 import itertools
 
 class Group(BaseGroup):
+    treatment_order = models.StringField()
     def vcg_allocation(self):
         bids = defaultdict(dict)
 
@@ -164,12 +166,10 @@ class Group(BaseGroup):
             # print(player)
             player.subtracted_points_vcg = float(player.payment_vcg)
             player.points = player.points - float(player.subtracted_points_vcg)
-            player.payoff = player.points * C.POINTS_TO_EUR
 
 
     def assign_rooms_borda(self):
         players = self.get_players()
-        print(players)
         rooms = ['X', 'Y', 'Z']
         points_per_rank = {1: 100, 2: 80, 3: 60}
 
@@ -185,7 +185,6 @@ class Group(BaseGroup):
             highest_scoring_player.assigned_room_rank = int(getattr(highest_scoring_player, f'borda_count_room_{room}'))
 
             highest_scoring_player.points = points_per_rank[int(getattr(highest_scoring_player, f'borda_count_room_{room}'))]
-            highest_scoring_player.payoff = highest_scoring_player.points * C.POINTS_TO_EUR
 
             # Remove assigned player from further consideration
             players.remove(highest_scoring_player)
@@ -211,7 +210,6 @@ class Group(BaseGroup):
                 player.assigned_room = favorite_room
                 player.assigned_room_rank = int(getattr(player, f'ttc_room_{favorite_room}'))
                 player.points = points_per_rank.get(player.assigned_room_rank, 0)
-                player.payoff = player.points * C.POINTS_TO_EUR
                 unassigned_players.remove(player)
                 unassigned_rooms.remove(favorite_room)
 
@@ -222,8 +220,17 @@ class Group(BaseGroup):
         # Sort the list by rank and return the player with the highest rank
         player_rankings.sort(key=lambda x: x[1])
         return player_rankings[0][0]
-class Player(BasePlayer):
     
+    def set_payoffs_1(self):
+        for player in self.get_players():
+            # choose a random round to pay
+            player.part_to_pay = random.randint(1, C.NUM_ROUNDS)
+            player.payoff = player.in_round(player.part_to_pay).points
+            player.payoff_points = player.in_round(player.part_to_pay).points
+
+
+class Player(BasePlayer):
+    part_to_pay = models.IntegerField()
     start_time_VCG = models.IntegerField(initial=C.STARTTIME_INITIAL)
     start_time_TTC = models.IntegerField(initial=C.STARTTIME_INITIAL)
     start_time_Borda = models.IntegerField(initial=C.STARTTIME_INITIAL)
@@ -291,7 +298,9 @@ class Player(BasePlayer):
     payment_vcg = models.CurrencyField() 
     pivotal = models.BooleanField(initial=False)  
     subtracted_points_vcg = models.FloatField() 
-    # payoff = models.CurrencyField() 
+    payoff_points = models.FloatField()
+    treatment = models.StringField()
+
 
     satisfaction = likert_field('Satisfaction', C.SATISFACTION_VN)
     dissatisfaction = likert_field('Dissatisfaction', C.DISSATISFACTION_VN)
